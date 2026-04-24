@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo vigente de trámites del Registro Agrario Nacional (RAN)</title>
+<style>
+  * { box-sizing: border-box; }
+  html { scrollbar-gutter: stable; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; color: #1a1a1a; background: #f7f7f5; }
+  body.modal-open { overflow: hidden; }
+
+  /* ===== HEADER ===== */
+  .page-header { background: #fff; padding: 18px 24px 14px; border-bottom: 3px solid #b38e5d; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .page-header h1 { color: #611232; font-size: 22px; margin: 0 0 4px; }
+  .meta { font-size: 12.5px; color: #555; margin: 0 0 12px; }
+  .controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1 1 360px; max-width: 520px; }
+  #search { width: 100%; padding: 9px 38px 9px 14px; font-size: 14px; border: 1.5px solid #d0c5b0; border-radius: 6px; background: #fff; transition: border-color 0.15s; font-family: inherit; }
+  #search:focus { outline: none; border-color: #611232; box-shadow: 0 0 0 3px rgba(97,18,50,0.12); }
+  #clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border: none; background: #b38e5d; color: #fff; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; display: none; }
+  #clear:hover { background: #611232; }
+  #clear.visible { display: block; }
+  .counter { font-size: 13px; color: #611232; font-weight: 600; padding: 8px 14px; background: #faf4ea; border-left: 3px solid #b38e5d; border-radius: 0 4px 4px 0; }
+
+  /* ===== TABLE ===== */
+  main { padding: 16px 24px 32px; }
+  .table-wrap { background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; table-layout: fixed; }
+  thead { position: sticky; top: 0; z-index: 5; }
+  th { background: #611232; color: #fff; padding: 11px 8px; text-align: left; font-weight: 600; border: 1px solid #4a0e26; vertical-align: top; font-size: 12.5px; }
+  td { padding: 10px 8px; border: 1px solid #e3e3e3; vertical-align: top; line-height: 1.45; }
+  tbody tr { cursor: pointer; transition: background 0.12s; }
+  tbody tr:nth-child(even) td { background: #faf7f2; }
+  tbody tr:hover td { background: #f0e8dc !important; }
+  .nombre { font-weight: 600; color: #1a1a1a; }
+  .nombre:hover { color: #611232; }
+  .homoclave { font-family: 'Consolas', 'Monaco', monospace; font-weight: 700; color: #611232; white-space: nowrap; }
+  .homoclave a { color: #611232; text-decoration: none; border-bottom: 1px dashed #b38e5d; padding-bottom: 1px; }
+  .homoclave a:hover { color: #4a0e26; border-bottom-style: solid; }
+  .summary { color: #444; }
+  .summary ol { margin: 0; padding-left: 18px; }
+  .summary li { margin-bottom: 3px; }
+  .more-link { display: inline-block; margin-top: 4px; color: #611232; font-size: 11.5px; font-weight: 600; font-style: italic; }
+
+  col.c-nombre { width: 14%; }
+  col.c-homo { width: 8%; }
+  col.c-aplica { width: 11%; }
+  col.c-desc { width: 14%; }
+  col.c-req { width: 22%; }
+  col.c-tiempo { width: 8%; }
+  col.c-pasos { width: 23%; }
+
+  mark { background: #fff3a8; color: #1a1a1a; padding: 0 2px; border-radius: 2px; font-weight: 600; }
+  .no-results { padding: 32px; text-align: center; color: #666; font-size: 14px; background: #fff; border-radius: 6px; margin-top: 8px; }
+
+  /* ===== MODAL ===== */
+  .modal { position: fixed; inset: 0; z-index: 100; display: none; }
+  .modal.open { display: block; }
+  .modal-overlay { position: absolute; inset: 0; background: rgba(26,26,26,0.5); backdrop-filter: blur(2px); animation: fadeIn 0.2s ease-out; }
+  .modal-card { position: relative; max-width: 760px; max-height: 90vh; margin: 4vh auto; background: #fff; border-radius: 12px; box-shadow: 0 18px 60px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; animation: slideUp 0.25s ease-out; }
+  .modal-close { position: absolute; top: 12px; right: 14px; width: 32px; height: 32px; border: none; background: rgba(255,255,255,0.95); color: #611232; border-radius: 50%; cursor: pointer; font-size: 20px; line-height: 1; padding: 0; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.15s; }
+  .modal-close:hover { background: #611232; color: #fff; transform: scale(1.05); }
+  .modal-body { padding: 32px 36px; overflow-y: auto; }
+
+  .ficha-header { border-bottom: 2px solid #b38e5d; padding-bottom: 16px; margin-bottom: 20px; }
+  .ficha-header .ficha-homo { display: inline-block; font-family: 'Consolas', monospace; font-size: 13px; font-weight: 700; color: #fff; background: #611232; padding: 4px 10px; border-radius: 4px; margin-bottom: 10px; }
+  .ficha-header .ficha-homo a { color: #fff; text-decoration: none; }
+  .ficha-header h2 { color: #611232; font-size: 18px; line-height: 1.35; margin: 0; font-weight: 700; }
+
+  .ficha-section { margin-bottom: 20px; }
+  .ficha-section:last-child { margin-bottom: 0; }
+  .ficha-label { font-size: 11px; font-weight: 700; color: #b38e5d; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .ficha-text { font-size: 14px; color: #2a2a2a; line-height: 1.55; }
+  .ficha-tiempo { display: inline-block; background: #faf4ea; color: #611232; font-weight: 700; font-size: 15px; padding: 8px 16px; border-radius: 6px; border-left: 4px solid #b38e5d; }
+  .ficha-section ol, .ficha-section ul { margin: 0; padding-left: 22px; }
+  .ficha-section li { font-size: 13.5px; color: #2a2a2a; line-height: 1.55; margin-bottom: 6px; }
+  .ficha-nota { background: #f9f3e6; border-left: 3px solid #b38e5d; padding: 10px 14px; margin-top: 10px; font-size: 13px; color: #4a3a1a; border-radius: 0 4px 4px 0; }
+  .ficha-nota strong { color: #611232; }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .page-header { padding: 14px 16px 12px; }
+    .page-header h1 { font-size: 18px; }
+    main { padding: 12px 16px 24px; }
+    .controls { flex-direction: column; align-items: stretch; }
+    .search-wrap { max-width: none; }
+
+    /* Convert table to card layout */
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { position: static; }
+    thead tr { display: none; }
+    .table-wrap { background: transparent; box-shadow: none; }
+    tbody tr { background: #fff; border-radius: 8px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e6e0d3; }
+    tbody tr:nth-child(even) td { background: transparent; }
+    tbody tr:hover td { background: transparent !important; }
+    td { border: none; padding: 6px 0; background: transparent !important; }
+    td::before { content: attr(data-label); display: block; font-size: 10.5px; font-weight: 700; color: #b38e5d; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+    td.cell-nombre { padding-bottom: 8px; border-bottom: 1px solid #f0e8dc; margin-bottom: 6px; }
+    td.cell-nombre::before { display: none; }
+    td.cell-nombre .nombre { font-size: 14px; }
+
+    /* Modal fullscreen on mobile */
+    .modal-card { max-width: 100%; max-height: 100vh; margin: 0; border-radius: 0; height: 100vh; }
+    .modal-body { padding: 24px 20px; }
+    .ficha-header h2 { font-size: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .page-header h1 { font-size: 16px; }
+    .modal-body { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Catálogo vigente de trámites del Registro Agrario Nacional (RAN)</h1>
+  <p class="meta">Fuente base: TRAMITES_RAN.pdf · Actualización aplicada: Acuerdo SEDATU publicado en el DOF el 19 de febrero de 2026 · Total de trámites vigentes: 42 · Unidad responsable: Dirección General de Registro y Control Documental, RAN.</p>
+  <div class="controls">
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Buscar por nombre, homoclave, requisitos, pasos…" autocomplete="off">
+      <button id="clear" type="button" aria-label="Limpiar búsqueda" title="Limpiar">×</button>
+    </div>
+    <div class="counter" id="counter">Mostrando 42 de 42 trámites</div>
+  </div>
+</header>
+
+<main>
+  <div class="table-wrap">
+    <table id="tramites-table">
+      <colgroup>
+        <col class="c-nombre"><col class="c-homo"><col class="c-aplica"><col class="c-desc"><col class="c-req"><col class="c-tiempo"><col class="c-pasos">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Nombre del trámite</th>
+          <th>Homoclave</th>
+          <th>¿Para quién aplica?</th>
+          <th>Descripción / Objeto</th>
+          <th>Requisitos</th>
+          <th>Tiempo de respuesta</th>
+          <th>Pasos</th>
+        </tr>
+      </thead>
+      <tbody id="tramites-body"></tbody>
+    </table>
+    <div id="no-results" class="no-results" hidden>No se encontraron trámites que coincidan con la búsqueda.</div>
+  </div>
+</main>
+
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal-overlay" id="modal-overlay"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="ficha-title">
+    <button class="modal-close" id="modal-close" aria-label="Cerrar ficha">×</button>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const TRAMITES = [
+  {
+    homoclave: "RAN-00-001",
+    nombre: "CONSTANCIA DE UBICACIÓN DE PREDIOS EN PROPIEDAD SOCIAL",
+    aplica: "Cualquier persona interesada en conocer si un predio se ubica en propiedad social registrada.",
+    descripcion: "Informa si una superficie determinada se encuentra dentro de alguna propiedad social registrada ante el RAN.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (con CURP integrada al formato).",
+      "Comprobante de pago de derechos.",
+      "Croquis con los datos de coordenadas geográficas o UTM de los límites del predio."
+    ],
+    pasos: [
+      "Reunir los documentos requeridos.",
+      "Acudir a la oficina de representación del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-001",
+    nombre: "CONSTITUCIÓN DE UN NUEVO EJIDO. INSCRIPCIÓN",
+    aplica: "Grupo mínimo de veinte individuos mexicanos que aporten tierras de propiedad privada.",
+    descripcion: "Constituye formalmente un ejido mediante aportación de tierras y proyecto de reglamento interno, e inscribe el acto ante el RAN.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (con CURP integrada al formato).",
+      "Documento que acredite personalidad jurídica e identidad del solicitante: persona física, INE o pasaporte vigente; representante legal o apoderado, carta poder suscrita por el titular ante dos testigos.",
+      "Escritura pública con la que cada individuo acredite la propiedad de la superficie que aporta.",
+      "Escritura pública en la que conste la constitución del ejido y su reglamento interno, así como sus anexos.",
+      "Certificado de libertad de gravamen y constancia de no adeudo del impuesto predial.",
+      "Plano correspondiente con cuadro de construcción y coordenadas UTM."
+    ],
+    pasos: [
+      "Reunir a los 20 mexicanos y aportar tierras de propiedad privada.",
+      "Formalizar ante fedatario la constitución, aportación y reglamento interno.",
+      "Integrar la documentación requerida.",
+      "Presentar solicitud presencial ante el RAN."
+    ]
+  },
+  {
+    homoclave: "RAN-04-002",
+    nombre: "ACUERDO DE ASAMBLEA DE LA TERMINACIÓN DEL RÉGIMEN EJIDAL. INSCRIPCIÓN",
+    aplica: "Ejidatarios de un núcleo de población que acuerden en asamblea terminar el régimen ejidal.",
+    descripcion: "Concluye formalmente el régimen ejidal sobre las tierras de un núcleo mediante inscripción del acuerdo de asamblea.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original).",
+      "Acta de asamblea con acuerdo de terminación (original y copia).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Dictamen positivo emitido por la Procuraduría Agraria (original).",
+      "Publicación del acuerdo en el Diario Oficial de la Federación y periódico local (copia).",
+      "Identificación oficial vigente, INE o pasaporte (original y copia)."
+    ],
+    pasos: [
+      "Celebrar asamblea general y aprobar la terminación.",
+      "Obtener dictamen positivo de la Procuraduría Agraria.",
+      "Publicar el acuerdo en el DOF y periódico local.",
+      "Presentar solicitud y documentos ante el RAN."
+    ]
+  },
+  {
+    homoclave: "RAN-04-003",
+    nombre: "ACUERDO DE ASAMBLEA DE LA DIVISIÓN DE EJIDOS. INSCRIPCIÓN",
+    aplica: "Núcleo de población ejidal que acuerde en asamblea dividir su ejido en dos o más partes.",
+    descripcion: "Permite dividir un ejido en partes que se agregan a otros ejidos o forman uno nuevo con personalidad jurídica propia.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de división (original y copia).",
+      "Planos de los ejidos derivados, con cuadro de construcción y coordenadas UTM (original).",
+      "Certificados parcelarios y/o de uso común (original).",
+      "CURP de cada interesado (copia).",
+      "Identificación oficial vigente, INE o pasaporte (original y copia)."
+    ],
+    pasos: [
+      "Celebrar asamblea y aprobar la división.",
+      "Integrar planos de los ejidos resultantes y certificados.",
+      "Reunir la documentación requerida.",
+      "Presentar solicitud presencial ante el RAN."
+    ]
+  },
+  {
+    homoclave: "RAN-04-004",
+    nombre: "ACUERDO DE ASAMBLEA DE FUSIÓN DE EJIDOS. INSCRIPCIÓN",
+    aplica: "Dos o más ejidos que, mediante sus asambleas, acuerden constituirse en una sola persona jurídica.",
+    descripcion: "Crea un nuevo ejido como resultado de la fusión de dos o más ejidos previamente establecidos.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de fusión (original y copia).",
+      "Plano del ejido derivado, con cuadro de construcción y coordenadas UTM (original).",
+      "Certificados parcelarios y/o de uso común (original).",
+      "CURP de cada interesado (copia).",
+      "Identificación oficial vigente, INE o pasaporte (original y copia)."
+    ],
+    pasos: [
+      "Celebrar asambleas en cada ejido y aprobar la fusión.",
+      "Integrar el plano del ejido resultante y los certificados.",
+      "Reunir la documentación requerida.",
+      "Presentar solicitud presencial ante el RAN."
+    ]
+  },
+  {
+    homoclave: "RAN-04-005",
+    nombre: "ACUERDO DE ASAMBLEA DE LA APORTACIÓN DE TIERRAS DE USO COMÚN A UNA SOCIEDAD. INSCRIPCIÓN",
+    aplica: "Núcleo ejidal que en asamblea acuerde aportar tierras de uso común a una sociedad civil o mercantil.",
+    descripcion: "Inscribe la aportación de tierras de uso común a una sociedad, participando en su capital mediante acciones o partes sociales.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de aportación (original y copia).",
+      "Opinión de la Procuraduría Agraria sobre proyecto y escritura social (original).",
+      "Plano interno del núcleo con modificaciones, cuadro de construcción y UTM (copia).",
+      "Escritura pública del acta constitutiva de la sociedad (original).",
+      "Avalúo de las tierras emitido por INDAABIN o institución crediticia (original).",
+      "Identificación oficial vigente, INE o pasaporte (original y copia)."
+    ],
+    pasos: [
+      "Celebrar asamblea y aprobar la aportación de tierras.",
+      "Obtener opinión de la Procuraduría Agraria y constituir la sociedad.",
+      "Elaborar avalúo y actualizar plano interno.",
+      "Presentar solicitud presencial ante el RAN."
+    ]
+  },
+  {
+    homoclave: "RAN-04-006",
+    nombre: "ACUERDO DE ASAMBLEA PARA INCORPORAR TIERRAS AL RÉGIMEN EJIDAL O COMUNAL",
+    aplica: "Interesado o representante legal.",
+    descripcion: "Inscribe el acuerdo para incorporar tierras de dominio pleno o propiedad privada al régimen ejidal o comunal.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Comprobante de pago del trámite (original).",
+      "Convocatoria a los interesados (original).",
+      "Acta de asamblea con acuerdo de incorporación (original).",
+      "Identificación oficial vigente, INE o pasaporte (original).",
+      "Plano topográfico con características y colindancias (original).",
+      "Datos del solicitante (original).",
+      "Datos del predio con límites y características (original).",
+      "Datos del propietario de las tierras (original)."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-007",
+    nombre: "ACUERDO DE ASAMBLEA PARA LA INSTAURACIÓN, MODIFICACIÓN O CANCELACIÓN DEL RÉGIMEN DE EXPLOTACIÓN COLECTIVA. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Inscribe el acuerdo para instaurar, modificar o cancelar el régimen de explotación colectiva de parcelas ejidales.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Comprobante de pago del trámite, que acredita el cumplimiento de requisitos (original)."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-008",
+    nombre: "ACUERDO DE ASAMBLEA DE AUTORIZACIÓN PARA LA ADOPCIÓN DEL DOMINIO PLENO. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Inscribe el acuerdo de asamblea que autoriza adoptar el dominio pleno sobre parcelas ejidales delimitadas y asignadas.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Datos del beneficiario (ejidatario).",
+      "Formato de solicitud FF-RAN-01, debidamente requisitado.",
+      "Acta de asamblea con acuerdo de autorización.",
+      "Convocatoria a la asamblea.",
+      "Padrón de ejidatarios del núcleo.",
+      "Identificación oficial vigente, INE o pasaporte.",
+      "Datos del solicitante.",
+      "Datos del ejido."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-009",
+    nombre: "ACUERDO DE ASAMBLEA DE ACEPTACIÓN O SEPARACIÓN DE EJIDATARIOS O COMUNEROS. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Inscribe los acuerdos de aceptación, separación o suspensión temporal de ejidatarios o comuneros.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de aceptación, separación o suspensión (original).",
+      "Documento que acredite la nacionalidad mexicana del ejidatario o comunero (original).",
+      "CURP de cada sujeto aceptado (copia).",
+      "Identificación oficial vigente del promovente (original y copia)."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y presentar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-011",
+    nombre: "INSCRIPCIÓN DEL RECONOCIMIENTO DE AVECINDADOS EN EL EJIDO. INSCRIPCIÓN",
+    aplica: "Interesado o representante legal.",
+    descripcion: "Inscribe el acuerdo para reconocer como avecindado a un mexicano mayor de edad con residencia de un año o más en el núcleo.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FE-RAN-01, debidamente requisitado (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de reconocimiento (original y copia).",
+      "Acreditamiento de residencia de un año o más por Comisariado o autoridad municipal (original).",
+      "Expediente individual de cada sujeto: acta de nacimiento o documento de nacionalidad, datos generales, identificación oficial y CURP.",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (original y copia)."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y presentar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-012",
+    nombre: "ACUERDO DE ASAMBLEA DE REGULARIZACIÓN DE TENENCIA DE POSESIONADOS. INSCRIPCIÓN",
+    aplica: "Interesado o representante legal.",
+    descripcion: "Inscribe el acuerdo para regularizar la tenencia de la tierra a favor de posesionados, permitiendo su reconocimiento formal.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Comprobante de pago del trámite (original).",
+      "Identificación oficial vigente, INE o pasaporte (original).",
+      "Comprobante de domicilio (original).",
+      "Acta de nacimiento (original).",
+      "CURP (original).",
+      "Datos del solicitante (original)."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-013",
+    nombre: "ACUERDO DE ASAMBLEA DE ADOPCIÓN DE DOMINIO PLENO DE COLONIA AGRÍCOLA. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Inscribe el acuerdo de la asamblea de colonos que concluye el régimen de colonia agrícola y opta por el dominio pleno de sus tierras.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original).",
+      "Convocatoria(s) con lugar, fecha y asuntos, y actas de no verificativo (original).",
+      "Acta de asamblea con acuerdo de adopción, firmada por integrantes (original y copia).",
+      "Plano general de la colonia y planos de los lotes con coordenadas UTM (original).",
+      "Planos individuales de los lotes (original).",
+      "Identificación oficial vigente, INE o pasaporte (original y copia).",
+      "Datos del solicitante (original).",
+      "Datos del propietario de los lotes (original)."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-014",
+    nombre: "ACUERDO DE ASAMBLEA DE LA DELIMITACIÓN, DESTINO Y ASIGNACIÓN DE LAS TIERRAS EJIDALES O COMUNALES. INSCRIPCIÓN",
+    aplica: "Interesado o conforme a lo establecido en el acuerdo de asamblea.",
+    descripcion: "Inscribe el acuerdo para delimitar, destinar y asignar las tierras ejidales o comunales a asentamiento humano, uso común o parcelas.",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (original y copia).",
+      "Comprobante de pago del trámite, para núcleos fuera del programa FANAR (original y copia).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de delimitación, destino y asignación (original).",
+      "Expediente general (original y copia).",
+      "Expedientes individuales de beneficiados: acta de nacimiento o documento de nacionalidad, datos generales, identificación oficial y CURP (original y copia).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-015",
+    nombre: "ADOPCIÓN DEL DOMINIO PLENO SOBRE PARCELAS. EXPEDICIÓN DE TÍTULO DE PROPIEDAD",
+    aplica: "Interesado, tercero con carta poder o representante legal, previamente autorizado por acuerdo de asamblea.",
+    descripcion: "El titular de una parcela ejidal autorizado por asamblea solicita su título de propiedad, formalizando el cambio a propiedad privada.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (original).",
+      "Identificación oficial vigente, INE o pasaporte (original y copia).",
+      "Comprobante de pago del trámite conforme a la Ley Federal de Derechos (original).",
+      "Certificado de derechos parcelarios para cancelación y canje; en parcelas colectivas, original de cada cotitular (original).",
+      "CURP con datos generales del titular (copia)."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina de representación del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-016",
+    nombre: "ENAJENACIÓN DE DERECHOS PARCELARIOS EN EJIDOS O COMUNIDADES. INSCRIPCIÓN",
+    aplica: "Interesado o conforme al acto de transmisión (adquirente debe ser ejidatario, comunero o avecindado del mismo núcleo).",
+    descripcion: "Inscribe la transmisión legal de derechos parcelarios entre ejidatarios, comuneros o avecindados del mismo núcleo; aplica también a permutas.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Datos del propietario: fecha de solicitud, nombre del trámite, nombre del titular, domicilio y entidad federativa (original y copia)."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-017",
+    nombre: "ACUERDO DE ASAMBLEA DE CAMBIO DE DESTINO DE TIERRAS EJIDALES Y COMUNALES. INSCRIPCIÓN",
+    aplica: "Interesado.",
+    descripcion: "Inscribe el acuerdo que cambia el destino de tierras ejidales o comunales delimitadas (uso común a parcela, asentamiento humano o infraestructura a parcela).",
+    tiempo: "60 días naturales",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de cambio de destino (original y copia).",
+      "Documentos de la superficie afectada (original).",
+      "Cédulas de información, medios magnéticos y planos de grandes áreas conforme a normas RAN (original).",
+      "Anuencia de verificación en campo para bosques y selvas; autorización municipal para asentamiento humano (copia).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (original y copia)."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-018",
+    nombre: "ACUERDO DE ASAMBLEA DE LA DELIMITACIÓN DE LA RESERVA DE CRECIMIENTO. INSCRIPCIÓN",
+    aplica: "Conforme a lo establecido por la asamblea general del ejido.",
+    descripcion: "Inscribe el acuerdo que señala y delimita, dentro del asentamiento humano, una superficie como área de reserva de crecimiento del ejido.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01; adjuntar anexo si el espacio es insuficiente (original).",
+      "Comprobante de pago de derechos (original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (original).",
+      "Acta de asamblea con acuerdo de delimitación (original y copia).",
+      "Opinión de autoridades municipales y federales competentes (original).",
+      "Cédulas de información, medios magnéticos y planos conforme a normas técnicas (original).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (original y copia).",
+      "Datos del solicitante.",
+      "Datos del predio.",
+      "Datos del propietario."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-019",
+    nombre: "ACUERDO DE ASAMBLEA DE ASIGNACIÓN DE DERECHOS PARCELARIOS, SOBRE TIERRAS DE USO COMÚN Y SOLARES. INSCRIPCIÓN",
+    aplica: "Interesado o tercero con carta poder.",
+    descripcion: "Inscribe el acuerdo que asigna derechos parcelarios sobre tierras ejidales o comunales de uso común y solares previamente delimitados.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Solicitud de trámite FF-RAN-01 para ejidos, comunidades y colonias (original y copia).",
+      "Acta de asamblea con acuerdo de asignación sobre tierras delimitadas (original y copia).",
+      "Expedientes individuales de beneficiados: acta de nacimiento o documento de nacionalidad y datos generales (original y copia).",
+      "Comprobante de pago del trámite (original y copia).",
+      "Identificación oficial vigente, INE o pasaporte (original)."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-020",
+    nombre: "TRANSMISIÓN DE DERECHOS POR SUCESIÓN. INSCRIPCIÓN",
+    aplica: "Interesado, representante legal o tercero con carta poder (sucesor preferente).",
+    descripcion: "Formaliza e inscribe el traslado de derechos agrarios al sucesor preferente una vez ocurrido el fallecimiento del titular.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Comprobante de pago del trámite (original y copia).",
+      "Acta de defunción del titular (original y copia).",
+      "Identificación oficial vigente, INE o pasaporte; si contiene CURP, no se requiere por separado (original y copia).",
+      "Acta de apertura, testamento agrario o aviso notarial con designación de sucesores (original y copia).",
+      "Certificados originales a cancelar; en caso de extravío, robo o deterioro, constancia ante la fiscalía (original).",
+      "Expediente individual del sucesor preferente: acta de nacimiento o nacionalidad, datos generales, identificación y CURP (copia).",
+      "Escrito libre de solicitud con datos completos del promovente (original)."
+    ],
+    pasos: [
+      "Acudir a la oficina de representación del RAN.",
+      "Reunir la documentación requerida.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-021",
+    nombre: "CESIÓN DE DERECHOS DE USO COMÚN EN EJIDOS Y COMUNIDADES. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal (cesionario debe ser ejidatario o avecindado del mismo núcleo).",
+    descripcion: "Inscribe la cesión de derechos sobre tierras de uso común entre ejidatarios, comuneros o avecindados del mismo núcleo.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Hoja de datos personales del sujeto: nombre, fecha y lugar de nacimiento, nacionalidad y contacto (original).",
+      "Contrato firmado por las partes (original).",
+      "Certificados de derechos sobre tierras de uso común del cedente (original).",
+      "Comprobante de domicilio (original).",
+      "Comprobante de pago del trámite (original).",
+      "Acta de nacimiento (original).",
+      "CURP (original)."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-022",
+    nombre: "EXPEDICIÓN DE TÍTULOS DE DOMINIO PLENO A COLONOS",
+    aplica: "Interesado (colono), tercero con carta poder o representante legal.",
+    descripcion: "El colono solicita individualmente el título de propiedad de dominio pleno de uno o más lotes, que se inscribe en el Registro Público de la Propiedad estatal.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 para ejidos, comunidades y colonias (original).",
+      "Comprobante de pago del trámite (original).",
+      "Título de propiedad o constancia de pago expedida por la SEDATU (original).",
+      "Plano individual del lote rústico conforme a especificaciones SEDATU publicadas en el DOF (original).",
+      "Conformidad de colindantes con la delimitación (original y copia).",
+      "CURP con datos generales del colono (original y copia).",
+      "Identificación oficial vigente, INE o pasaporte (original)."
+    ],
+    pasos: [
+      "Reunir los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-023",
+    nombre: "INSCRIPCIÓN DE ACTA CONSTITUTIVA PARA UNIÓN DE EJIDOS O COMUNIDADES, ASOCIACIÓN RURAL DE INTERÉS COLECTIVO, SOCIEDAD DE PRODUCCIÓN RURAL, UNIÓN DE SOCIEDADES DE PRODUCCIÓN RURAL, SOCIEDAD DE SOLIDARIDAD SOCIAL O, DE FEDERACIÓN DE SOCIEDADES DE SOLIDARIDAD SOCIAL",
+    aplica: "Personas morales constituyentes (vía interesado, tercero con carta poder o representante legal): Unión de Ejidos o Comunidades, ARIC, SPR, Unión SPR, SSS o Federación SSS.",
+    descripcion: "Trámite único que inscribe el acta constitutiva de seis figuras societarias rurales. Sustituye 6 trámites anteriores fusionados.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02.",
+      "Documento que acredite personalidad jurídica e identidad del solicitante: persona física, INE o pasaporte vigente; representante legal, poder notarial otorgado ante fedatario público.",
+      "Acta constitutiva con estatutos, otorgada ante fedatario público.",
+      "Autorización de uso de la denominación o razón social, otorgada por la Secretaría de Economía.",
+      "Para Unión de Ejidos o Comunidades: convocatoria(s) y, en su caso, acta(s) de no verificativo; acta de resolución y nombramiento de delegados por cada ejido o comunidad participante.",
+      "Para Asociación Rural de Interés Colectivo: convocatoria(s) y, en su caso, acta(s) de no verificativo; acta de resolución y nombramiento de delegados por cada persona moral participante.",
+      "Para Sociedad de Producción Rural: constancia que avale su inscripción si no se señala expresamente la inscripción del acta constitutiva en el Registro Público de Comercio.",
+      "Para Unión de Sociedades de Producción Rural: convocatoria(s) y, en su caso, acta(s) de no verificativo; acta de resolución y nombramiento de delegados por cada sociedad participante; constancia que avale su inscripción si no se señala expresamente.",
+      "Para Sociedad de Solidaridad Social: autorización de funcionamiento emitida por SEDATU.",
+      "Para Federación de Sociedades de Solidaridad Social: convocatoria(s) y, en su caso, acta(s) de no verificativo; acta de resolución y nombramiento de delegados por cada sociedad participante; autorización de funcionamiento emitida por SEDATU."
+    ],
+    pasos: [
+      "Formalizar el acta constitutiva ante fedatario público y obtener autorización de denominación de la SE.",
+      "Reunir los requisitos generales y los específicos según el tipo de figura societaria.",
+      "Acudir a la oficina del RAN y entregar la solicitud FF-RAN-02 con la documentación.",
+      "Recibir el número de solicitud para seguimiento."
+    ]
+  },
+  {
+    homoclave: "RAN-04-024",
+    nombre: "ACTA DE MODIFICACIÓN DE ESTATUTOS U OTRAS MODIFICACIONES",
+    aplica: "Sociedades rurales (Uniones de Ejidos o Comunidades, ARIC, SPR, Unión SPR, SSS y Federación SSS) que modifiquen sus estatutos u otros aspectos.",
+    descripcion: "Trámite único que inscribe los acuerdos de asamblea de sociedades rurales para modificar estatutos u otras modificaciones. Sustituye 3 trámites anteriores fusionados.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02.",
+      "Documento que acredite personalidad jurídica e identidad del solicitante: persona física, INE o pasaporte vigente; representante legal, poder notarial otorgado ante fedatario público.",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo.",
+      "Acta de asamblea.",
+      "Para sociedades rurales, adicionalmente: acta de resolución y nombramiento de delegados por cada persona moral participante; acta constitutiva con estatutos otorgada ante fedatario público.",
+      "Para modificación de denominación o razón social: autorización de uso de la denominación o razón social otorgada por la Secretaría de Economía."
+    ],
+    pasos: [
+      "Celebrar la asamblea con las convocatorias correspondientes.",
+      "Reunir los requisitos generales y los específicos según el tipo de modificación.",
+      "Acudir a la oficina del RAN y entregar la solicitud FF-RAN-02 con la documentación.",
+      "Recibir el número de solicitud para seguimiento."
+    ]
+  },
+  {
+    homoclave: "RAN-04-025",
+    nombre: "LIQUIDACIÓN PARA UNIÓN DE EJIDOS O COMUNIDADES, ASOCIACIÓN RURAL DE INTERÉS COLECTIVO, SOCIEDAD DE PRODUCCIÓN RURAL, UNIÓN DE SOCIEDADES DE PRODUCCIÓN RURAL, SOCIEDAD DE SOLIDARIDAD SOCIAL O, DE FEDERACIÓN DE SOCIEDADES DE SOLIDARIDAD SOCIAL",
+    aplica: "Sociedades rurales en proceso de liquidación: Unión de Ejidos o Comunidades, ARIC, SPR, Unión SPR, SSS o Federación SSS.",
+    descripcion: "Trámite único que inscribe la liquidación de seis figuras societarias rurales, incluyendo aprobación del balance final por el Comité Liquidador. Sustituye 6 trámites anteriores fusionados.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02.",
+      "Documento que acredite personalidad jurídica e identidad del solicitante: persona física, INE o pasaporte vigente; representante legal, poder notarial otorgado ante fedatario público.",
+      "Acta de asamblea o de liquidación con aprobación del balance final elaborado por el Comité Liquidador, otorgada ante fedatario público; junto con el documento por el que se integró el Comité Liquidador.",
+      "Para Unión de Ejidos o Comunidades, ARIC, SPR y Unión SPR: convocatoria(s) y, en su caso, acta(s) de no verificativo.",
+      "Para Sociedad de Solidaridad Social: revocación de la autorización de funcionamiento emitida por SEDATU.",
+      "Para Federación de Sociedades de Solidaridad Social: revocación de la autorización de funcionamiento emitida por SEDATU."
+    ],
+    pasos: [
+      "Aprobar la liquidación y el balance final ante fedatario público.",
+      "Reunir los requisitos generales y los específicos según el tipo de sociedad.",
+      "Acudir a la oficina del RAN y entregar la solicitud FF-RAN-02 con la documentación.",
+      "Recibir el número de solicitud para seguimiento."
+    ]
+  },
+  {
+    homoclave: "RAN-04-041",
+    nombre: "SOCIEDADES CIVILES O MERCANTILES PROPIETARIAS DE TIERRAS AGRÍCOLAS, GANADERAS O FORESTALES. ACTA CONSTITUTIVA Y MODIFICACIONES AL CONTRATO SOCIAL",
+    aplica: "Conforme a lo determinado por la sociedad (Título Sexto de la Ley Agraria).",
+    descripcion: "Inscribe el acta constitutiva o modificaciones al contrato social de sociedades civiles o mercantiles propietarias de tierras rústicas.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02 (original).",
+      "Acta constitutiva o modificaciones con estatutos, inscritas en Registro Público de Comercio (mercantiles) o de la Propiedad (civiles); con acreditación del representante legal (original).",
+      "Plano de construcción de propiedades rústicas con coordenadas UTM (original).",
+      "Estudio de la Comisión Técnica Consultiva de Coeficientes de Agostadero, COTECOCA (original).",
+      "CURP de cada persona física mexicana tenedora de acciones (copia).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (original y copia).",
+      "Datos del solicitante."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-042",
+    nombre: "SOCIEDADES CIVILES O MERCANTILES PROPIETARIAS DE TIERRAS AGRÍCOLAS, GANADERAS O FORESTALES. DISOLUCIÓN Y LIQUIDACIÓN",
+    aplica: "Conforme a lo determinado por la asamblea de la sociedad.",
+    descripcion: "Inscribe la disolución y liquidación de sociedades civiles o mercantiles propietarias de tierras agrícolas, ganaderas o forestales.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02 para sociedades (original).",
+      "Acta de asamblea general extraordinaria de liquidación en escritura pública, inscrita en Registro Público de Comercio (mercantiles) o de la Propiedad (civiles) (original).",
+      "Documento que acredite destino y transferencia de predios rústicos a tenedores de acciones serie T, inscrito en Registro Público, con acreditación del representante legal (original).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (original y copia).",
+      "Datos del solicitante."
+    ],
+    pasos: [
+      "Celebrar asamblea y formalizar en escritura pública e inscribir.",
+      "Acreditar destino y transferencia de predios rústicos, en su caso.",
+      "Reunir la documentación y acudir a la oficina delegacional del RAN.",
+      "Presentar la solicitud y documentación para inscripción."
+    ]
+  },
+  {
+    homoclave: "RAN-04-043",
+    nombre: "SOCIEDADES CIVILES O MERCANTILES PROPIETARIAS DE TIERRAS AGRÍCOLAS, GANADERAS O FORESTALES, INDIVIDUOS O SOCIEDADES TENEDORAS DE ACCIONES O PARTES SOCIALES SERIE T. INSCRIPCIÓN",
+    aplica: "Conforme a lo determinado por la asamblea de la sociedad.",
+    descripcion: "Inscribe la voluntad de la asamblea para emitir o colocar acciones o partes sociales serie T equivalentes al capital aportado en tierras.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02 (original).",
+      "Acta de asamblea ordinaria y/o extraordinaria en escritura pública, inscrita en Registro Público de Comercio o de la Propiedad; observando porcentaje de inversión extranjera (original y copia).",
+      "Acta constitutiva de la sociedad tenedora con estatutos, identificación de socios y acreditación del representante legal, en escritura pública inscrita (copia).",
+      "Traducción y legalización de documentos extranjeros apostillados o legalizados (original).",
+      "CURP de cada persona física mexicana tenedora de acciones o partes sociales serie T (copia).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (original y copia).",
+      "Datos del solicitante."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y presentar la solicitud.",
+      "Entregar la documentación y recibir número de trámite."
+    ]
+  },
+  {
+    homoclave: "RAN-04-044",
+    nombre: "APORTACIÓN DE TIERRAS DE USO COMÚN DE EJIDOS O COMUNIDADES A SOCIEDADES MERCANTILES O CIVILES",
+    aplica: "Sociedades civiles o mercantiles propietarias de tierras rústicas, y ejidos o comunidades aportantes.",
+    descripcion: "Inscribe la aportación de tierras de uso común de ejidos o comunidades a sociedades civiles o mercantiles constituidas conforme al Título Sexto de la Ley Agraria.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-02 (1 original).",
+      "Acta constitutiva o de asamblea general con aportación de tierras, acreditación del representante legal e inscripción en Registro Público de la Propiedad y de Comercio (1 original).",
+      "Plano de ubicación de propiedades rústicas con cuadro de construcción y coordenadas UTM (1 original).",
+      "CURP, para aportación de predios de origen particular (1 copia).",
+      "Constancia de uso, clase o coeficiente de agostadero, expedida por COTECOCA (1 original).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (1 original y 1 copia).",
+      "Datos del solicitante."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Acudir a la oficina del RAN.",
+      "Presentar la solicitud y documentación.",
+      "Esperar la resolución del trámite."
+    ]
+  },
+  {
+    homoclave: "RAN-04-045",
+    nombre: "ACUERDO DE ASAMBLEA DE ELECCIÓN O REMOCIÓN DE LOS ÓRGANOS DE REPRESENTACIÓN DEL EJIDO O COMUNIDAD. INSCRIPCIÓN",
+    aplica: "No especificado.",
+    descripcion: "Inscribe el acuerdo del núcleo agrario para elegir sus órganos de representación tras el período anterior o remover a integrantes.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (1 original).",
+      "Convocatoria(s) a la asamblea (1 original).",
+      "Acta(s) de no verificativo, cuando aplique (1 original).",
+      "Acta de Asamblea con elección o remoción de órganos (1 original y 1 copia).",
+      "Fotografías recientes tamaño infantil de cada integrante electo propietario.",
+      "Identificación oficial vigente del solicitante (1 original y 1 copia).",
+      "Datos del solicitante."
+    ],
+    pasos: [
+      "Reunir la documentación requerida.",
+      "Presentar la solicitud y documentos en modalidad presencial.",
+      "Verificar que cumpla requisitos legales y formales.",
+      "Esperar la resolución de la autoridad competente."
+    ]
+  },
+  {
+    homoclave: "RAN-04-046",
+    nombre: "INSCRIPCIÓN DE CONTRATOS",
+    aplica: "Ejidos, comunidades, ejidatarios o comuneros (vía interesado, tercero con carta poder o representante legal) que celebren contratos sobre tierras de uso común o sobre sus parcelas.",
+    descripcion: "Trámite único que inscribe contratos celebrados por ejidos y comunidades sobre tierras de uso común, así como contratos de asociación o aprovechamiento celebrados por ejidatarios o comuneros respecto de sus parcelas. Sustituye 2 trámites anteriores fusionados.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01.",
+      "Documento que acredite personalidad jurídica e identidad del solicitante: persona física, INE o pasaporte vigente; representante legal, poder notarial otorgado ante fedatario público.",
+      "Contrato firmado por los contratantes y ratificado por fedatario público, con anexo de plano topográfico con coordenadas UTM siempre y cuando la afectación sea parcial.",
+      "Para contratos celebrados por ejidos y comunidades sobre tierras de uso común: acta de asamblea con acuerdo o anuencia respecto del objeto del contrato."
+    ],
+    pasos: [
+      "Celebrar y ratificar el contrato ante fedatario público.",
+      "Si aplica, obtener acta de asamblea con anuencia del núcleo agrario.",
+      "Acudir a la oficina del RAN y entregar la solicitud FF-RAN-01 con la documentación.",
+      "Recibir el número de solicitud para seguimiento."
+    ]
+  },
+  {
+    homoclave: "RAN-04-048",
+    nombre: "DESIGNACIÓN DE SUCESORES DE EJIDATARIO O COMUNERO (DEPÓSITO DE LISTA)",
+    aplica: "Interesado (acto personalísimo del ejidatario o comunero titular).",
+    descripcion: "El ejidatario o comunero designa personalmente a la persona que deberá sucederle en sus derechos sobre parcela y demás derechos agrarios.",
+    tiempo: "Inmediato",
+    requisitos: [
+      "Identificación oficial vigente, INE o pasaporte; si contiene CURP, no se requiere por separado. Se presenta para cotejo (original y 1 copia).",
+      "Acta de nacimiento, que acredita identidad, nacionalidad y filiación. Se presenta para cotejo (1 copia).",
+      "Escrito libre de solicitud con designación de sucesores y datos completos del promovente (original y 1 copia)."
+    ],
+    pasos: [
+      "Presentarse en la oficina del RAN del estado correspondiente.",
+      "Entregar la documentación en original y copia para cotejo.",
+      "Realizar el depósito de la lista de sucesores ante el RAN o fedatario público."
+    ]
+  },
+  {
+    homoclave: "RAN-04-049",
+    nombre: "APERTURA DE LISTA DE SUCESIÓN DE EJIDATARIO O COMUNERO",
+    aplica: "Interesado que acredite interés jurídico.",
+    descripcion: "Solicita la apertura de la lista de sucesión depositada, tras acreditar el fallecimiento del titular, para conocer al sucesor designado.",
+    tiempo: "Inmediato",
+    requisitos: [
+      "Identificación oficial vigente, INE o pasaporte; si contiene CURP, no se requiere por separado. Se presenta para cotejo (original y 1 copia).",
+      "Acta de defunción del ejidatario o comunero. Se presenta para cotejo (original y 1 copia).",
+      "Escrito libre de solicitud de apertura con datos completos del promovente (original y 1 copia).",
+      "Documentos probatorios que acrediten interés jurídico: acta de nacimiento, de matrimonio o constancia de dependencia económica (1 copia)."
+    ],
+    pasos: [
+      "Acudir a la delegación del RAN con los requisitos.",
+      "Presentar solicitud y documentación para cotejo.",
+      "El RAN verifica fallecimiento y existencia de lista de sucesión.",
+      "En presencia del interesado y al menos dos testigos, se abre el sobre y se informa el nombre designado."
+    ]
+  },
+  {
+    homoclave: "RAN-04-050",
+    nombre: "ACUERDO DE ASAMBLEA DE APROBACIÓN DEL REGLAMENTO INTERNO DEL EJIDO O EL ESTATUTO DE LA COMUNIDAD Y SUS MODIFICACIONES. INSCRIPCIÓN",
+    aplica: "No especificado.",
+    descripcion: "Inscribe el acuerdo de asamblea que aprueba el reglamento interno del ejido o estatuto comunal y sus modificaciones, dándole validez registral.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado.",
+      "Acta de no verificativo, solo cuando la asamblea se celebre en segunda o ulterior convocatoria.",
+      "Acta de Asamblea con acuerdo de aprobación y, en su caso, modificaciones.",
+      "Reglamento Interno o Estatuto Comunal aprobado por la asamblea, con modificaciones en su caso.",
+      "Identificación oficial vigente, INE o pasaporte.",
+      "Datos del solicitante."
+    ],
+    pasos: [
+      "Reunir todos los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud y documentación.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-051",
+    nombre: "CONSTANCIAS DE INSCRIPCIÓN O DE VIGENCIA DE DERECHOS O LISTADO DE EJIDATARIOS O COMUNEROS CON DERECHOS VIGENTES. EXPEDICIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal (cualquier persona, previo pago).",
+    descripcion: "El Registrador Integral expide constancias de derechos derivados de actos inscritos sobre propiedad ejidal, comunal y otros derechos inscritos.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 para ejidos, comunidades y colonias (original y 1 copia).",
+      "Comprobante de pago del trámite (original y 1 copia).",
+      "CURP (original y 1 copia).",
+      "Identificación oficial vigente, INE o pasaporte (original)."
+    ],
+    pasos: [
+      "Reunir todos los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud y documentación.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-052",
+    nombre: "ASIENTOS REGISTRALES. RECTIFICACIÓN",
+    aplica: "Interesado o representante legal (requiere consentimiento expreso del o los interesados).",
+    descripcion: "Rectifica asientos registrales que contengan errores de carácter material o de concepto, a solicitud y con consentimiento expreso.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (con CURP integrada al formato).",
+      "Documento que acredite personalidad jurídica e identidad del solicitante: persona física, INE o pasaporte vigente; representante legal, poder notarial otorgado ante fedatario público.",
+      "Comprobante de pago del trámite.",
+      "Documento que acredite la rectificación: certificados en general y actas de asamblea, donde los errores se presenten de manera material."
+    ],
+    pasos: [
+      "Reunir la documentación que acredite el error material y el consentimiento del interesado.",
+      "Acudir a la oficina del RAN.",
+      "Llenar y entregar la solicitud FF-RAN-01 con la documentación.",
+      "Recibir el número de solicitud para seguimiento."
+    ]
+  },
+  {
+    homoclave: "RAN-04-053",
+    nombre: "CERTIFICADOS PARCELARIOS Y DE DERECHOS SOBRE TIERRAS DE USO COMÚN. REPOSICIÓN",
+    aplica: "Interesado o tercero con carta poder (titular del derecho).",
+    descripcion: "El titular solicita la reposición de certificados parcelarios o de derechos sobre uso común en caso de pérdida, robo o destrucción.",
+    tiempo: "45 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01 (con CURP integrada al formato).",
+      "Documento que acredite personalidad jurídica e identidad del titular del derecho: persona física, INE o pasaporte vigente; representante legal, poder notarial otorgado ante fedatario público.",
+      "Comprobante de pago del trámite."
+    ],
+    nota: "Art. 6° del Acuerdo: si el RAN determina resolución favorable, el solicitante deberá presentar la constancia de manifestación de hechos por robo, extravío, deterioro o destrucción ante la Fiscalía General de Justicia o Juzgados cívicos.",
+    pasos: [
+      "Reunir los tres requisitos básicos y acudir a la oficina del RAN.",
+      "Llenar y entregar la solicitud FF-RAN-01 con la documentación.",
+      "Recibir el número de solicitud y esperar la revisión del RAN.",
+      "Si la resolución es favorable, presentar la constancia de manifestación de hechos ante autoridad competente."
+    ]
+  },
+  {
+    homoclave: "RAN-04-054",
+    nombre: "ACUERDO DE ASAMBLEA PARA CONSTITUIR FIGURAS ORGANIZATIVAS AL INTERIOR DEL EJIDO O LA COMUNIDAD Y SUS MODIFICACIONES. INSCRIPCIÓN",
+    aplica: "Interesado o representante legal.",
+    descripcion: "Inscribe el acuerdo para constituir o modificar figuras organizativas internas: parcela escolar, parcela para juventud, UAIM, Unidad Económica u otras.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (1 original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (1 original).",
+      "Acta de Asamblea con acuerdo para constituir o modificar figuras organizativas (1 original y 1 copia).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (1 original y 1 copia)."
+    ],
+    pasos: [
+      "Reunir todos los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud y documentación.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-055",
+    nombre: "DIVERSOS ACUERDOS DE ASAMBLEA DE EJIDO O COMUNIDAD. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Da publicidad registral a diversos acuerdos de asamblea de formalidades simples necesarios para el desarrollo del ejido o comunidad.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (1 original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (1 original).",
+      "Acta de Asamblea con los acuerdos adoptados (1 original y 1 copia).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (1 original y 1 copia)."
+    ],
+    pasos: [
+      "Reunir todos los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud y documentación.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-056",
+    nombre: "REGLAMENTO INTERNO Y SUS MODIFICACIONES. COLONIA, AGRÍCOLA Y GANADERA. INSCRIPCIÓN",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Inscribe la aprobación o modificación del reglamento interno de una colonia agrícola o ganadera que establece las bases de su organización.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (1 original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (1 original).",
+      "Acuerdo de asamblea de aprobación o modificación del Reglamento Interno (1 original y 1 copia).",
+      "Constancia de continuidad bajo el régimen de colonos (1 original).",
+      "Proyecto del Reglamento Interno o de sus modificaciones, correspondiente al acuerdo de asamblea (1 original).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (1 original y 1 copia)."
+    ],
+    pasos: [
+      "Reunir todos los documentos necesarios.",
+      "Acudir a la oficina delegacional del RAN.",
+      "Llenar y entregar la solicitud y documentación.",
+      "Recibir el número de solicitud."
+    ]
+  },
+  {
+    homoclave: "RAN-04-057",
+    nombre: "EXPEDICIÓN DE COPIAS CERTIFICADAS DE DOCUMENTOS AGRARIOS",
+    aplica: "Interesado, tercero con carta poder o representante legal.",
+    descripcion: "Expide copias certificadas de documentos agrarios bajo custodia del RAN, previa consulta en archivo y contando con los datos del documento.",
+    tiempo: "3 meses (no modificado por el Acuerdo)",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01.",
+      "Comprobante de pago del trámite."
+    ],
+    pasos: [
+      "Acudir a cualquier oficina del RAN con los datos del documento a consultar.",
+      "Llenar la solicitud FF-RAN-01.",
+      "Realizar el pago de derechos.",
+      "Recibir el número de solicitud para seguimiento."
+    ]
+  },
+  {
+    homoclave: "RAN-04-058",
+    nombre: "ACUERDO DE ASAMBLEA PARA LA CONVERSIÓN DE RÉGIMEN EJIDAL A COMUNAL O VICEVERSA. INSCRIPCIÓN",
+    aplica: "No especificado.",
+    descripcion: "Inscribe el acuerdo por el que un núcleo de población cambia su régimen agrario, de ejidal a comunal o de comunal a ejidal.",
+    tiempo: "60 días hábiles",
+    requisitos: [
+      "Formato de solicitud FF-RAN-01, debidamente requisitado (1 original).",
+      "Convocatoria(s) y, en su caso, acta(s) de no verificativo (1 original).",
+      "Acta de Asamblea con acuerdo de conversión de régimen (1 original y 1 copia).",
+      "Certificados parcelarios y/o de derechos sobre tierras de uso común (1 original).",
+      "Identificación oficial vigente del solicitante, INE o pasaporte (1 original y 1 copia).",
+      "Datos del solicitante.",
+      "Datos del predio objeto del cambio de régimen.",
+      "Datos del propietario o titulares de derechos."
+    ],
+    pasos: [
+      "Reunir todos los documentos necesarios.",
+      "Presentar la solicitud y documentación en modalidad presencial.",
+      "Verificar cumplimiento de requisitos legales y formales.",
+      "Esperar la resolución de la autoridad competente."
+    ]
+  }
+];
+
+const TOTAL = TRAMITES.length;
+const PORTAL_URL = 'https://www.gob.mx/public/tramites/detalleTramite.xhtml?homoclave=';
+const SUMMARY_LIMIT = 2;
+
+const $body = document.getElementById('tramites-body');
+const $search = document.getElementById('search');
+const $clear = document.getElementById('clear');
+const $counter = document.getElementById('counter');
+const $noResults = document.getElementById('no-results');
+const $modal = document.getElementById('modal');
+const $modalBody = document.getElementById('modal-body');
+const $modalOverlay = document.getElementById('modal-overlay');
+const $modalClose = document.getElementById('modal-close');
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function highlight(text, term) {
+  const escaped = escapeHtml(text);
+  if (!term) return escaped;
+  const regex = new RegExp('(' + escapeRegex(term) + ')', 'gi');
+  return escaped.replace(regex, '<mark>$1</mark>');
+}
+
+function matchesTramite(t, term) {
+  if (!term) return true;
+  const lower = term.toLowerCase();
+  if (t.nombre.toLowerCase().includes(lower)) return true;
+  if (t.homoclave.toLowerCase().includes(lower)) return true;
+  if (t.aplica.toLowerCase().includes(lower)) return true;
+  if (t.descripcion.toLowerCase().includes(lower)) return true;
+  if (t.tiempo.toLowerCase().includes(lower)) return true;
+  if (t.requisitos.some(r => r.toLowerCase().includes(lower))) return true;
+  if (t.pasos.some(p => p.toLowerCase().includes(lower))) return true;
+  if (t.nota && t.nota.toLowerCase().includes(lower)) return true;
+  return false;
+}
+
+function renderSummary(items, term) {
+  const visible = items.slice(0, SUMMARY_LIMIT);
+  const remaining = items.length - visible.length;
+  let html = '<ol>' + visible.map(i => '<li>' + highlight(i, term) + '</li>').join('') + '</ol>';
+  if (remaining > 0) {
+    html += '<span class="more-link">+ ' + remaining + ' más → ver ficha</span>';
+  }
+  return html;
+}
+
+function renderTable(term) {
+  const filtered = TRAMITES.filter(t => matchesTramite(t, term));
+
+  if (filtered.length === 0) {
+    $body.innerHTML = '';
+    $noResults.hidden = false;
+  } else {
+    $noResults.hidden = true;
+    $body.innerHTML = filtered.map(t => {
+      const portalUrl = PORTAL_URL + encodeURIComponent(t.homoclave);
+      return '<tr data-homoclave="' + escapeHtml(t.homoclave) + '">' +
+        '<td class="cell-nombre" data-label="Nombre del trámite"><span class="nombre">' + highlight(t.nombre, term) + '</span></td>' +
+        '<td data-label="Homoclave"><span class="homoclave"><a href="' + portalUrl + '" target="_blank" rel="noopener noreferrer" data-stop>' + highlight(t.homoclave, term) + '</a></span></td>' +
+        '<td data-label="¿Para quién aplica?">' + highlight(t.aplica, term) + '</td>' +
+        '<td data-label="Descripción / Objeto">' + highlight(t.descripcion, term) + '</td>' +
+        '<td data-label="Requisitos"><div class="summary">' + renderSummary(t.requisitos, term) + '</div></td>' +
+        '<td data-label="Tiempo de respuesta">' + highlight(t.tiempo, term) + '</td>' +
+        '<td data-label="Pasos"><div class="summary">' + renderSummary(t.pasos, term) + '</div></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  $counter.textContent = 'Mostrando ' + filtered.length + ' de ' + TOTAL + ' trámites';
+}
+
+function openModal(homoclave) {
+  const t = TRAMITES.find(x => x.homoclave === homoclave);
+  if (!t) return;
+  const portalUrl = PORTAL_URL + encodeURIComponent(t.homoclave);
+
+  let html = '<div class="ficha-header">' +
+    '<span class="ficha-homo"><a href="' + portalUrl + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t.homoclave) + ' ↗</a></span>' +
+    '<h2 id="ficha-title">' + escapeHtml(t.nombre) + '</h2>' +
+  '</div>';
+
+  html += '<div class="ficha-section"><div class="ficha-label">¿Para quién aplica?</div><div class="ficha-text">' + escapeHtml(t.aplica) + '</div></div>';
+  html += '<div class="ficha-section"><div class="ficha-label">Descripción / Objeto</div><div class="ficha-text">' + escapeHtml(t.descripcion) + '</div></div>';
+  html += '<div class="ficha-section"><div class="ficha-label">Tiempo de respuesta</div><span class="ficha-tiempo">' + escapeHtml(t.tiempo) + '</span></div>';
+
+  html += '<div class="ficha-section"><div class="ficha-label">Requisitos</div><ol>' +
+    t.requisitos.map(r => '<li>' + escapeHtml(r) + '</li>').join('') +
+    '</ol>';
+  if (t.nota) {
+    html += '<div class="ficha-nota"><strong>Nota:</strong> ' + escapeHtml(t.nota) + '</div>';
+  }
+  html += '</div>';
+
+  html += '<div class="ficha-section"><div class="ficha-label">Pasos</div><ol>' +
+    t.pasos.map(p => '<li>' + escapeHtml(p) + '</li>').join('') +
+    '</ol></div>';
+
+  $modalBody.innerHTML = html;
+  $modal.classList.add('open');
+  $modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  $modalClose.focus();
+}
+
+function closeModal() {
+  $modal.classList.remove('open');
+  $modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+// ===== EVENT HANDLERS =====
+$search.addEventListener('input', () => {
+  const term = $search.value.trim();
+  $clear.classList.toggle('visible', term.length > 0);
+  renderTable(term);
+});
+
+$clear.addEventListener('click', () => {
+  $search.value = '';
+  $clear.classList.remove('visible');
+  renderTable('');
+  $search.focus();
+});
+
+$body.addEventListener('click', (e) => {
+  // Don't open modal if user clicked on the homoclave link
+  if (e.target.closest('[data-stop]')) return;
+  const tr = e.target.closest('tr');
+  if (!tr) return;
+  const homoclave = tr.getAttribute('data-homoclave');
+  if (homoclave) openModal(homoclave);
+});
+
+$modalOverlay.addEventListener('click', closeModal);
+$modalClose.addEventListener('click', closeModal);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $modal.classList.contains('open')) closeModal();
+});
+
+// Initial render
+renderTable('');
+</script>
+
+</body>
+</html>
